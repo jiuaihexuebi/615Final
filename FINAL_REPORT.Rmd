@@ -1,0 +1,73 @@
+---
+title: "Final Report"
+author: "Kecheng Liang"
+date: "12/12/2018"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE,echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(magrittr)
+library(benford.analysis)
+library(dplyr)
+```
+
+#Introduction
+Basketball is one of the most popular sports in the world. National Basketball Association(NBA) is the largest league for this sport. There are lots of interesting data in the game. In basketball, an assist is attributed to a player who passes the ball to a teammate in a way that leads to a score by field goal, meaning that he or she was "assisting" in the basket. Because an assist can be scored for the passer even if the player who receives the pass makes a basket after dribbling the ball. In some situtation it becomes hard to define whether it is a assist. We may think that player who play in the home game are more easily get the tenth assist when the player already have nine assists. Same thing may happen in rebound. I want to do the analysis whether it really happens. Also I will do other interesting graph to show the miracle NBA data.
+
+#Data
+The data is downloaded from website and the data from 2012 to 2018. It is well organized with 51 variables and I removed some useless variables.
+```{r,warning=FALSE}
+Initial <- read.csv("2012-18_playerBoxScore.csv")
+Initial$playAST <- as.numeric(Initial$playAST)
+Initial$playTRB <- as.numeric(as.character(Initial$playTRB))
+Initial <- Initial[,c(-1,-2,-3,-4,-5,-8,-11,-12,-13,-14,-15,-16,-17,-24,-48,-49,-50,-51)]
+away_data <- filter(Initial,Initial$teamLoc=="Away")
+home_data <- filter(Initial,Initial$teamLoc=="Home")
+nba_total <- rbind(away_data,home_data)
+```
+
+```{r}
+var <- data.frame(Variables = c("Room_id","Host_id","Room_type","Borough","Reviews","Overall satisfaction","Accommodates","Bedrooms","Price","Latitude","Longtitude"),
+                 Explanation = c("A unique number for an Airbnb property","A unique number for an Airbnb host","Room type of the Airbnb property, one of shared room, entire room/apt, or private room","A town, or part of a large city","The number of reviews that an Airbnb property received","The average rating that an Airbnb property received(max value is five)","The number of visitors can live in an Airbnb property","The number of bedrooms in an Airbnb property","The price for a night stay","The latitude of the Airbnb property","The longtitude of the Airbnb property"))
+kable(var,caption = "Variables explanation")
+```
+
+
+#EDA
+```{r}
+hist(x=away_data$playAST,main = "Away Assist",xlab = "number of assist")
+hist(x=home_data$playAST,main = "Home Assist",xlab = "number of assist")
+hist(x=away_data$playTRB,main = "Away Rebound",xlab = "number of rebound")
+hist(x=home_data$playTRB,main = "Home Rebound",xlab = "number of rebound")
+```
+
+#Chi square test
+```{r,warning=FALSE,echo=FALSE}
+#Assist Test
+away_ast <- table(away_data$playAST)
+home_ast <- table(home_data$playAST)
+length(away_ast) <- length(home_ast)
+total_ast <- cbind(away_ast,home_ast)
+total_ast <- as.data.frame(total_ast)
+total_ast[is.na(total_ast)] <- 0
+chisq.test(total_ast)
+#Rebound Test
+away_trb <- table(away_data$playTRB)
+home_trb <- table(home_data$playTRB)
+length(away_trb) <- length(home_trb)
+total_trb <- cbind(away_trb,home_trb)
+total_trb <- as.data.frame(total_trb)
+total_trb[is.na(total_trb)] <- 0
+chisq.test(total_trb)
+```
+
+
+
+
+
+
+
