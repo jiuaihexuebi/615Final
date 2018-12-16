@@ -3,8 +3,8 @@ title: "Final Report"
 author: "Kecheng Liang"
 date: "12/12/2018"
 output:
-  word_document: default
   pdf_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE,echo=FALSE}
@@ -13,6 +13,7 @@ library(tidyverse)
 library(magrittr)
 library(benford.analysis)
 library(dplyr)
+library(knitr)
 ```
 
 #Introduction
@@ -20,27 +21,31 @@ Basketball is one of the most popular sports in the world. National Basketball A
 
 #Data
 The data is downloaded from website and the data from 2012 to 2018. It is well organized with 51 variables and I removed some useless variables.
-```{r,warning=FALSE}
+```{r,warning=FALSE,echo=FALSE}
 Initial <- read.csv("2012-18_playerBoxScore.csv")
 Initial$playAST <- as.numeric(Initial$playAST)
 Initial$playTRB <- as.numeric(as.character(Initial$playTRB))
+Initial$playWeight <- as.numeric(as.character(Initial$playWeight))
+Initial$playMin <- as.numeric(as.character(Initial$playMin))
 Initial <- Initial[,c(-1,-2,-3,-4,-5,-8,-11,-12,-13,-14,-15,-16,-17,-24,-48,-49,-50,-51)]
 away_data <- filter(Initial,Initial$teamLoc=="Away")
 home_data <- filter(Initial,Initial$teamLoc=="Home")
 nba_total <- rbind(away_data,home_data)
 ```
 
-```{r}
-var <- data.frame(Variables = c("Room_id","Host_id","Room_type","Borough","Reviews","Overall satisfaction","Accommodates","Bedrooms","Price","Latitude","Longtitude"),
-                 Explanation = c("A unique number for an Airbnb property","A unique number for an Airbnb host","Room type of the Airbnb property, one of shared room, entire room/apt, or private room","A town, or part of a large city","The number of reviews that an Airbnb property received","The average rating that an Airbnb property received(max value is five)","The number of visitors can live in an Airbnb property","The number of bedrooms in an Airbnb property","The price for a night stay","The latitude of the Airbnb property","The longtitude of the Airbnb property"))
+```{r,echo=FALSE}
+var <- data.frame(Variables = c("teamAbbr","teamConf","teamLoc","teamRslt","playDispNm","playStat","playMin","playPos","playHeight","playWeight","playPTS","playAST","playTO","playSTL","playBLK","playPF","playFGA","playFGM","playFG.","play2PA","play2PM","play2P.","play3PA","play3PM","play3P.","playFTA","playFTM","playFT.","playORB","playDRB","playTRB","opptAbbr","opptConf"),
+                 Explanation = c("Abbreviation of team","Identifies conference of team","Identifies whether team is home or visitor","Identifies whether team has won or lost","Player display name","Identifies staring status of player","Player minutes on floor","Player position during game","Player height","Player weight","Points scored by player","Assists made by player","Turnovers made by player","Steals made by player","Blocks  made by player","Personal fouls made by player","Field goal attempts made by player","Field goal shots made by player","Field goal percentage made by player","Two point attempts made by player","Two point shots made by player","Two point percentage made by player","Three point attempts  made by player","Three point shots made by player","Three point percentage made by player","Free throw attempts made by player","Free throw shots made by player","Free throw percentage made by player","Offensive rebounds made by player","Defensive rebounds made by player","Total rebounds made by player","AAbbreviAtion of opponent","Identifies conference of opponent"))
 kable(var,caption = "Variables explanation")
 ```
 
-
-#EDA
-```{r}
+#EDA for Assists and Rebounds
+```{r,warning=FALSE}
+#Assist and team location
 hist(x=away_data$playAST,main = "Away Assist",xlab = "number of assist")
 hist(x=home_data$playAST,main = "Home Assist",xlab = "number of assist")
+
+#Rebound and team location
 hist(x=away_data$playTRB,main = "Away Rebound",xlab = "number of rebound")
 hist(x=home_data$playTRB,main = "Home Rebound",xlab = "number of rebound")
 ```
@@ -55,6 +60,7 @@ total_ast <- cbind(away_ast,home_ast)
 total_ast <- as.data.frame(total_ast)
 total_ast[is.na(total_ast)] <- 0
 chisq.test(total_ast)
+
 #Rebound Test
 away_trb <- table(away_data$playTRB)
 home_trb <- table(home_data$playTRB)
@@ -64,6 +70,153 @@ total_trb <- as.data.frame(total_trb)
 total_trb[is.na(total_trb)] <- 0
 chisq.test(total_trb)
 ```
+By doing the chi square test, we found that the both assist and rebound do not have significance difference between home game and away game.
+
+#EDA for Interesting NBA Stats
+```{r,warning=FALSE}
+#NBA player height and weight related to position
+ggplot(data = nba_total,aes(x=playHeight))+geom_bar(aes(fill=playPos))+
+  ggtitle("NBA player average height")+xlab("Player height")+
+  scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=playWeight,fill=playPos))+geom_histogram(binwidth = 5)+
+  scale_x_continuous(name='Player Weight',breaks=seq(140,360,20))+
+  scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+```
+Those above graphs show the distribution of NBA players height and weight.
+
+```{r,warning=FALSE}
+#NBA player relationship between free throw and shooting percentage
+ggplot(data = nba_total,aes(x=playFG.,y=playFT.))+geom_point()+
+  ggtitle("NBA player free throw percentage and Field goal percentgae")+
+  xlab("Player Field goal percentage")+ylab("Player free throw percentage")
+
+ggplot(data = nba_total,aes(x=play3P.,y=playFT.))+geom_point()+
+  ggtitle("NBA player free throw percentage and 3 point shooting percentgae")+
+  xlab("Player 3 point shooting percentage")+ylab("Player free throw percentage")
+
+ggplot(data = nba_total,aes(x=play2P.,y=playFT.))+geom_point()+
+  ggtitle("NBA player free throw percentage and 2 point shooting percentgae")+
+  xlab("Player 2 point shooting percentage")+ylab("Player free throw percentage")
+```
+Those above graphs show the relationship between free throw and shooting percentage.
+
+```{r,warning=FALSE}
+#Relationship between position and play minutes
+ggplot(data = nba_total,aes(x=playMin,fill=playPos))+geom_histogram(binwidth = 1)+
+  scale_x_continuous(name="Player Minute",breaks=seq(0,60,10))+
+  scale_y_continuous(name="Count",breaks=seq(0,6000,1000))+
+  scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=playMin,fill=playPos))+geom_histogram(position = "fill",binwidth = 1)+
+  scale_x_discrete(name='Player Minute',breaks=seq(0,60,10),limits=c(0,60))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+```
+Those graphs show the relationship between player minutes and the position of player.
+
+```{r,warning=FALSE}
+#Relationship between position and shooting percentage
+ggplot(data = nba_total,aes(x=playFT.,fill=playPos))+geom_histogram(position = "fill",binwidth = 0.1)+
+  scale_x_discrete(name="Free throw shooting percentage",breaks=seq(0,1,0.1),limits=c(0,1))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=playFG.,fill=playPos))+geom_histogram(position = "fill",binwidth = 0.1)+
+  scale_x_discrete(name="Field goal percentage",breaks=seq(0,1,0.1),limits=c(0,1))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=play2P.,fill=playPos))+geom_histogram(position = "fill",binwidth = 0.1)+
+  scale_x_discrete(name="2 point shotting percentage",breaks=seq(0,1,0.1),limits=c(0,1))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=play3P.,fill=playPos))+geom_histogram(position = "fill",binwidth = 0.1)+
+  scale_x_discrete(name="3 point shotting percentage",breaks=seq(0,1,0.1),limits=c(0,1))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+```
+Those above graphs show the relationship between position and shooting percentage.
+
+```{r,warning=FALSE}
+#Relationship between position and basic stats
+ggplot(data = nba_total,aes(x=playAST,fill=playPos))+geom_histogram(binwidth = 1)+
+  scale_x_discrete(name="Number of assists",breaks=seq(0,20,5))+
+  ylab("Count")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=playAST,fill=playPos))+geom_histogram(position="fill",binwidth = 1)+
+  scale_x_discrete(name="Number of assists",breaks=seq(0,25,5))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+```
+Those two graphs show that PG are much easier to get high number of assists.
+
+```{r,warning=FALSE}
+ggplot(data = nba_total,aes(x=playPTS,fill=playPos))+geom_histogram(binwidth = 1)+
+  scale_x_continuous(name="Points scored by player",breaks=seq(0,70,5))+
+  scale_y_continuous(name="Count",breaks=seq(0,13000,2000))+
+  scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=playPTS,fill=playPos))+geom_histogram(position="fill",binwidth = 1)+
+  scale_x_continuous(name="Points scored by player",breaks=seq(0,70,5))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+```
+Those two above graphs show that SG, PG, and SF are much easier to score more points.
+
+```{r,warning=FALSE}
+ggplot(data = nba_total,aes(x=playTRB,fill=playPos))+geom_histogram(binwidth = 1)+
+  scale_x_continuous(name="Rebounds made by player",breaks=seq(0,30,2))+
+  scale_y_continuous(name="Count",breaks=seq(0,12000,2000))+
+  scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=playTRB,fill=playPos))+geom_histogram(position="fill",binwidth = 1)+
+  scale_x_continuous(name="Rebounds made by player",breaks=seq(0,30,2))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+```
+Those two above graphs show that the Center and Power forward are much easier to get more rebounds.
+
+```{r,warning=FALSE}
+ggplot(data = nba_total,aes(x=playTO,fill=playPos))+geom_histogram(binwidth = 1)+
+  scale_x_continuous(name="Turnovers made by player",breaks=seq(0,12,1))+
+  scale_y_continuous(name="Count",breaks=seq(0,55000,5000))+
+  scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=playTO,fill=playPos))+geom_histogram(position="fill",binwidth = 1)+
+  scale_x_continuous(name="Turnovers made by player",breaks=seq(0,12,1))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+```
+Those two above graphs show that PG and SG are much easier to have more turnovers.
+
+```{r,warning=FALSE}
+ggplot(data = nba_total,aes(x=playPF,fill=playPos))+geom_histogram(binwidth = 1)+
+  scale_x_continuous(name="Personal fouls made by player",breaks=seq(0,6,1))+
+  scale_y_continuous(name="Count",breaks=seq(0,40000,5000))+
+  scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=playPF,fill=playPos))+geom_histogram(position="fill",binwidth = 1)+
+  scale_x_continuous(name="Personal fouls made by player",breaks=seq(0,6,1))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+```
+Those two above graphs show that center and power forward are much easier to have more fouls.
+
+```{r,warning=FALSE}
+ggplot(data = nba_total,aes(x=playSTL,fill=playPos))+geom_histogram(binwidth = 1)+
+  scale_x_continuous(name="Steals made by player",breaks=seq(0,10,1))+
+  scale_y_continuous(name="Count",breaks=seq(0,90000,10000))+
+  scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=playSTL,fill=playPos))+geom_histogram(position="fill",binwidth = 1)+
+  scale_x_continuous(name="Steals made by player",breaks=seq(0,10,1))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+```
+Those two above graphs show that pg are much easier to get steals.
+
+```{r,warning=FALSE}
+ggplot(data = nba_total,aes(x=playBLK,fill=playPos))+geom_histogram(binwidth = 1)+
+  scale_x_continuous(name="Blocks made by player",breaks=seq(0,12,1))+
+  scale_y_continuous(name="Count",breaks=seq(0,40000,5000),limits=c(0,40000))+
+  scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+
+ggplot(data = nba_total,aes(x=playBLK,fill=playPos))+geom_histogram(position="fill",binwidth = 1)+
+  scale_x_continuous(name="Blocks made by player",breaks=seq(0,12,1))+
+  ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
+```
+Those two above graphs show that C and PF are much easier to get blocks.
 
 
 
