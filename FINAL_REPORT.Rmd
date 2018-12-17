@@ -80,6 +80,7 @@ ggplot(data = nba_total,aes(x=playHeight))+geom_bar(aes(fill=playPos))+
   scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
 
 ggplot(data = nba_total,aes(x=playWeight,fill=playPos))+geom_histogram(binwidth = 5)+
+  ggtitle("NBA player average weight")+
   scale_x_continuous(name='Player Weight',breaks=seq(140,360,20))+
   scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
 ```
