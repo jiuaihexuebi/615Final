@@ -125,11 +125,11 @@ ggplot(data = nba_total,aes(x=playFG.,fill=playPos))+geom_histogram(position = "
   ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
 
 ggplot(data = nba_total,aes(x=play2P.,fill=playPos))+geom_histogram(position = "fill",binwidth = 0.1)+
-  scale_x_discrete(name="2 point shotting percentage",breaks=seq(0,1,0.1),limits=c(0,1))+
+  scale_x_discrete(name="2 point shooting percentage",breaks=seq(0,1,0.1),limits=c(0,1))+
   ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
 
 ggplot(data = nba_total,aes(x=play3P.,fill=playPos))+geom_histogram(position = "fill",binwidth = 0.1)+
-  scale_x_discrete(name="3 point shotting percentage",breaks=seq(0,1,0.1),limits=c(0,1))+
+  scale_x_discrete(name="3 point shooting percentage",breaks=seq(0,1,0.1),limits=c(0,1))+
   ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
 ```
 Those above graphs show the relationship between position and shooting percentage.
@@ -137,11 +137,11 @@ Those above graphs show the relationship between position and shooting percentag
 ```{r,warning=FALSE}
 #Relationship between position and basic stats
 ggplot(data = nba_total,aes(x=playAST,fill=playPos))+geom_histogram(binwidth = 1)+
-  scale_x_discrete(name="Number of assists",breaks=seq(0,20,5))+
+  scale_x_continuous(name="Assists made by player",breaks=seq(0,20,5))+
   ylab("Count")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
 
 ggplot(data = nba_total,aes(x=playAST,fill=playPos))+geom_histogram(position="fill",binwidth = 1)+
-  scale_x_discrete(name="Number of assists",breaks=seq(0,25,5))+
+  scale_x_continuous(name="Assists made by player",breaks=seq(0,25,5))+
   ylab("Proportion")+scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
 ```
 Those two graphs show that PG are much easier to get high number of assists.
@@ -161,7 +161,7 @@ Those two above graphs show that SG, PG, and SF are much easier to score more po
 ```{r,warning=FALSE}
 ggplot(data = nba_total,aes(x=playTRB,fill=playPos))+geom_histogram(binwidth = 1)+
   scale_x_continuous(name="Rebounds made by player",breaks=seq(0,30,2))+
-  scale_y_continuous(name="Count",breaks=seq(0,12000,2000))+
+  scale_y_continuous(name="Count",breaks=seq(0,22000,2000))+
   scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
 
 ggplot(data = nba_total,aes(x=playTRB,fill=playPos))+geom_histogram(position="fill",binwidth = 1)+
@@ -209,7 +209,7 @@ Those two above graphs show that pg are much easier to get steals.
 ```{r,warning=FALSE}
 ggplot(data = nba_total,aes(x=playBLK,fill=playPos))+geom_histogram(binwidth = 1)+
   scale_x_continuous(name="Blocks made by player",breaks=seq(0,12,1))+
-  scale_y_continuous(name="Count",breaks=seq(0,40000,5000),limits=c(0,40000))+
+  scale_y_continuous(name="Count",breaks=seq(0,110000,5000))+
   scale_fill_discrete(breaks=c("C","PF","F","SF","SG","G","PG"))
 
 ggplot(data = nba_total,aes(x=playBLK,fill=playPos))+geom_histogram(position="fill",binwidth = 1)+
